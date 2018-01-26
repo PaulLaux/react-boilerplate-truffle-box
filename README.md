@@ -1,8 +1,7 @@
-<img src="https://raw.githubusercontent.com/react-boilerplate/react-boilerplate-brand/master/assets/banner-metal-optimized.jpg" alt="react boilerplate banner" align="center" />
 
 <br />
 
-<div align="center"><strong>Start your next Ethereum smart contracts project using truffle in seconds</strong></div>
+<div align="center"><strong>Start your next DApp / Ethereum smart contracts project using truffle in seconds</strong></div>
 <div align="center">A highly scalable, offline-first foundation for truffle project</div>
 
 <br />
@@ -21,6 +20,8 @@
   <dd>Enjoy the best DX (Developer eXperience) and code your app at the speed of thought! Your saved changes to the CSS and JS are reflected instantaneously without refreshing the page. Preserve application state even when you update something in the underlying code!</dd>
 
 </dl>
+
+<!---
 
 But wait... there's more!
 
@@ -46,7 +47,7 @@ But wait... there's more!
 4. Run `npm run clean` to delete the example app.
 
 Now you're ready to rumble!
-
+-->
 ## License
 
 This project is licensed under the MIT license, Copyright (c) 2018 Paul Laux. For more information see `LICENSE.md`.
