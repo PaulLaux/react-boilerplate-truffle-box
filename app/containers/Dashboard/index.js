@@ -18,26 +18,29 @@ import reducer from './reducer';
 import saga from './saga';
 
 import Web3Status from 'components/Web3Status';
+import { initDashboard } from './actions';
 
 export class Dashboard extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
   componentDidMount() {
     console.log('componentDidMount()');
 
-    //this.props.onInitDashboard();
+    this.props.onInitDashboard();
   }
   render() {
 
-    const { 
+    const {
+      // onInitDashboard,
       web3
      } = this.props;
 
     return (
       <div>
         <Helmet>
-          <title>Dashboard</title>
+          <title>react-boilerplate truffle box - Dashboard</title>
           <meta name="description" content="Description of Dashboard" />
         </Helmet>
         <Web3Status web3={web3} />
+        <br />
         My Dash
       </div>
     );
@@ -46,7 +49,7 @@ export class Dashboard extends React.PureComponent { // eslint-disable-line reac
 
 Dashboard.propTypes = {
   dispatch: PropTypes.func.isRequired,
-  web3: PropTypes.object,
+  web3: PropTypes.oneOfType([PropTypes.object,PropTypes.string]),
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -56,7 +59,10 @@ const mapStateToProps = createStructuredSelector({
 
 function mapDispatchToProps(dispatch) {
   return {
-    dispatch,
+    onInitDashboard: () => {
+      dispatch(initDashboard());
+    },
+    dispatch
   };
 }
 
@@ -68,5 +74,5 @@ const withSaga = injectSaga({ key: 'dashboard', saga });
 export default compose(
   withReducer,
   withSaga,
-  withConnect,
+  withConnect
 )(Dashboard);
