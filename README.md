@@ -36,18 +36,19 @@ But wait... there's more!
 
 
 <sub><i>Keywords: React.js, Redux, Hot Reloading, ESNext, Babel, react-router, Offline First, ServiceWorker, `styled-components`, redux-saga, FontFaceObserver</i></sub>
+-->
 
 ## Quick start
 
-1. Clone this repo using `git clone --depth=1 https://github.com/react-boilerplate/react-boilerplate.git`
-2. Move to the appropriate directory: `cd react-boilerplate`.<br />
+1. Clone this repo using `git clone --depth=1 https://github.com/PaulLaux/react-boilerplate-truffle-box.git`
+2. Move to the appropriate directory: `cd react-boilerplate-truffle-box`.<br />
 3. Run `npm run setup` in order to install dependencies and clean the git repo.<br />
    *We auto-detect `yarn` for installing packages by default, if you wish to force `npm` usage do: `USE_YARN=false npm run setup`*<br />
-   *At this point you can run `npm start` to see the example app at `http://localhost:3000`.*
-4. Run `npm run clean` to delete the example app.
+   *At this point you can run `npm start` to see the example app at `http://localhost:3002`.*
+4. Run `npm start` to begin.
 
 Now you're ready to rumble!
--->
+
 ## License
 
 This project is licensed under the MIT license, Copyright (c) 2018 Paul Laux. For more information see `LICENSE.md`.
