@@ -5,7 +5,7 @@
   "description": "truffle box using react-boilerplate",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/PaulLaux/react-boilerplate-truffle-box.git"
   },
   "engines": {
     "npm": ">=5",
@@ -269,6 +269,7 @@
     "reselect": "3.0.1",
     "sanitize.css": "4.1.0",
     "styled-components": "2.3.0",
+    "truffle-contract": "^3.0.2",
     "warning": "3.0.0",
     "web3": "1.0.0-beta.29",
     "whatwg-fetch": "2.0.3"

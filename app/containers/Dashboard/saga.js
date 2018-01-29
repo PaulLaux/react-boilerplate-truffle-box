@@ -1,8 +1,22 @@
 import { take, call, put, select, takeLatest } from 'redux-saga/effects';
-import { INIT_DASHBOARD } from './constants';
-import { initDashboardSuccess, initDashboardError } from './actions';
 
+import { INIT_DASHBOARD, SET_STORAGE_VALUE, GET_STORAGE_VALUE } from './constants';
+import {
+  initDashboardSuccess,
+  initDashboardError,
+  setStorageValueSuccess,
+  setStorageValueError,
+  getStorageValueSuccess,
+  getStorageValueError,
+} from './actions';
+import { makeSelectWeb3, makeSelectSimpleStorage } from './selectors';
+
+import SimpleStorageContract from '../../../truffle/build/contracts/SimpleStorage.json'
+import contract from 'truffle-contract';
 import Web3 from 'web3';
+
+export const timer = (ms) =>
+  new Promise((resolve) => setTimeout(() => resolve('timer end'), ms));
 
 /**
  * Init Dashboard
@@ -45,15 +59,76 @@ function* initDashboardAsync() {
     }
 
 
+    const simpleStorage = contract(SimpleStorageContract)
+    simpleStorage.setProvider(web3js.currentProvider)
+    // dirty hack for web3@1.0.0 support for localhost testrpc, 
+    // see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
+    if (typeof simpleStorage.currentProvider.sendAsync !== "function") {
+      simpleStorage.currentProvider.sendAsync = function () {
+        return simpleStorage.currentProvider.send.apply(
+          simpleStorage.currentProvider,
+          arguments
+        );
+      };
+    }
 
-    yield put(initDashboardSuccess(web3js));
+
+    yield put(initDashboardSuccess(web3js, simpleStorage));
   }
   catch (err) {
     yield put(initDashboardError(err.toString()));
   }
 }
 
+/**
+ * setStorageValue
+ */
+function* setStorageValueAsync(action) {
+  try {
+    console.log('setStorageValueAsync saga: ');
+
+    const selectWeb3 = yield select(makeSelectWeb3());
+    const accounts = yield call(selectWeb3.eth.getAccounts);
+
+    const simpleStorage = yield select(makeSelectSimpleStorage());
+
+    const simpleStorageInstance = yield call(simpleStorage.deployed);
+
+    // promise will resolve only when transaction is mined
+    const setValueResult = yield call(simpleStorageInstance.set, action.value, { from: accounts[0] });
+    console.log('setValueResult');
+    console.log(setValueResult);
+
+    yield put(setStorageValueSuccess());
+  }
+  catch (err) {
+    yield put(setStorageValueError(err.toString()));
+  }
+}
+
+/**
+ * getStorageValue
+ */
+function* getStorageValueAsync() {
+  try {
+
+
+    const simpleStorage = yield select(makeSelectSimpleStorage());
+
+    const simpleStorageInstance = yield call(simpleStorage.deployed);
+    const setValueResult = yield call(simpleStorageInstance.get.call);
+
+    yield put(getStorageValueSuccess(setValueResult.toNumber()));
+  }
+  catch (err) {
+    yield put(getStorageValueError(err.toString()));
+  }
+}
+
 // Individual exports for testing
 export default function* defaultSaga() {
   yield takeLatest(INIT_DASHBOARD, initDashboardAsync);
+
+  yield takeLatest(SET_STORAGE_VALUE, setStorageValueAsync);
+  yield takeLatest(GET_STORAGE_VALUE, getStorageValueAsync);
 }
