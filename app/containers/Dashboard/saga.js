@@ -72,6 +72,41 @@ function* initDashboardAsync() {
       };
     }
 
+    console.log('Events:');
+
+    const simpleStorageInstance = yield call(simpleStorage.deployed);
+    const events = simpleStorageInstance.allEvents();
+
+    events.watch(function (error, result) {
+      if (error) {
+        console.log("Error");
+      }
+      else {
+        console.log('got event(all events):');
+        console.log(result);
+        //console.log(result.event + ": ");
+        /*for(key in result.args) {
+          if(result.event in displayFunctions && key in displayFunctions[result.event]) {
+            console.log("- " + key + ": " + displayFunctions[result.event][key].call(this, result.args[key]));
+          }
+          else {
+            console.log("- " + key + ": " + result.args[key]);
+          }
+        }*/
+      }
+    });
+
+    const setEvent = simpleStorageInstance.Set();
+    setEvent.watch((function (error, result) {
+      if (error) {
+        console.log("Error");
+      }
+      else {
+        console.log('got event(set event):');
+        console.log(result);
+      }
+    }));
+
 
     yield put(initDashboardSuccess(web3js, simpleStorage));
   }
@@ -85,8 +120,6 @@ function* initDashboardAsync() {
  */
 function* setStorageValueAsync(action) {
   try {
-    console.log('setStorageValueAsync saga: ');
-
     const selectWeb3 = yield select(makeSelectWeb3());
     const accounts = yield call(selectWeb3.eth.getAccounts);
 
@@ -96,7 +129,7 @@ function* setStorageValueAsync(action) {
 
     // promise will resolve only when transaction is mined
     const setValueResult = yield call(simpleStorageInstance.set, action.value, { from: accounts[0] });
-    console.log('setValueResult');
+    console.log('setValueResult:');
     console.log(setValueResult);
 
     yield put(setStorageValueSuccess());
@@ -111,8 +144,6 @@ function* setStorageValueAsync(action) {
  */
 function* getStorageValueAsync() {
   try {
-
-
     const simpleStorage = yield select(makeSelectSimpleStorage());
 
     const simpleStorageInstance = yield call(simpleStorage.deployed);
