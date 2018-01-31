@@ -143,12 +143,7 @@ function* initDashboardAsync() {
 
 function* handleEvents() {
   while (true) {
-    const event = yield take(simpleStorageInstance.contract.Set(null, (_, evt) => {
-      eventChannel.put({
-        type: ADD_NEW_EVENT,
-        evt,
-      })
-    }););
+    const event = yield take(eventChannel);
     console.log(event);
   }
 }
