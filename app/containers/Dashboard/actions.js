@@ -17,6 +17,9 @@ import {
   GET_STORAGE_VALUE,
   GET_STORAGE_VALUE_SUCCESS,
   GET_STORAGE_VALUE_ERROR,
+
+  ADD_NEW_EVENT,
+
 } from './constants';
 
 /**
@@ -141,5 +144,22 @@ export function getStorageValueError(error) {
   return {
     type: GET_STORAGE_VALUE_ERROR,
     error,
+  };
+}
+
+/**
+ * store the new event
+ * 
+ * @param  {object} event
+ * 
+ * @return {object} An action object with a type of NEW_EVENT an the new event object
+ */
+export function addNewEvent(event) {
+  //console.log('new called:');
+  //console.log(event);
+  
+  return {
+    type: ADD_NEW_EVENT,
+    event
   };
 }

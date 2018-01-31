@@ -1,6 +1,7 @@
-import { take, call, put, select, takeLatest } from 'redux-saga/effects';
+import { channel } from 'redux-saga';
+import { take, call, put, select, takeLatest, fork } from 'redux-saga/effects';
 
-import { INIT_DASHBOARD, SET_STORAGE_VALUE, GET_STORAGE_VALUE } from './constants';
+import { INIT_DASHBOARD, SET_STORAGE_VALUE, GET_STORAGE_VALUE, ADD_NEW_EVENT } from './constants';
 import {
   initDashboardSuccess,
   initDashboardError,
@@ -8,6 +9,7 @@ import {
   setStorageValueError,
   getStorageValueSuccess,
   getStorageValueError,
+  addNewEvent,
 } from './actions';
 import { makeSelectWeb3, makeSelectSimpleStorage } from './selectors';
 
@@ -17,6 +19,10 @@ import Web3 from 'web3';
 
 export const timer = (ms) =>
   new Promise((resolve) => setTimeout(() => resolve('timer end'), ms));
+
+
+const eventChannel = channel()
+
 
 /**
  * Init Dashboard
@@ -34,7 +40,6 @@ function* initDashboardAsync() {
       console.log('No web3 injected (Mist/Metamask...), Using local fallback');
       web3js = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
     }
-    console.log(web3js);
 
     const netId = yield call(web3js.eth.net.getId);
     console.log(`netid: ${netId}`);
@@ -61,6 +66,7 @@ function* initDashboardAsync() {
 
     const simpleStorage = contract(SimpleStorageContract)
     simpleStorage.setProvider(web3js.currentProvider)
+
     // dirty hack for web3@1.0.0 support for localhost testrpc, 
     // see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
     if (typeof simpleStorage.currentProvider.sendAsync !== "function") {
@@ -72,48 +78,81 @@ function* initDashboardAsync() {
       };
     }
 
+    const simpleStorageInstance = yield call(simpleStorage.deployed);
+
     console.log('Events:');
 
-    const simpleStorageInstance = yield call(simpleStorage.deployed);
-    const events = simpleStorageInstance.allEvents();
 
-    events.watch(function (error, result) {
-      if (error) {
-        console.log("Error");
-      }
-      else {
-        console.log('got event(all events):');
-        console.log(result);
-        //console.log(result.event + ": ");
-        /*for(key in result.args) {
-          if(result.event in displayFunctions && key in displayFunctions[result.event]) {
-            console.log("- " + key + ": " + displayFunctions[result.event][key].call(this, result.args[key]));
-          }
-          else {
-            console.log("- " + key + ": " + result.args[key]);
-          }
-        }*/
-      }
+    //web3@1.0 version of events: requires websocket rpc client
+    // const simpleStorageInstance = yield call(simpleStorage.deployed);
+    // const simpleStorageAddress = simpleStorageInstance.address;
+    // const simpleStorageAbi = SimpleStorageContract.abi;
+    // console.log(simpleStorageAddress);
+    // console.log(simpleStorageAbi);
+
+    // const simpleStorageContract = new web3js.eth.Contract(simpleStorageAbi, simpleStorageAddress);     
+    // simpleStorageContract.events.allEvents({
+    //   fromBlock: 0
+    // }, function (error, event) { console.log(event); })
+    //   .on('data', function (event) {
+    //     console.log(event); // same results as the optional callback above
+    //   })
+    //   .on('changed', function (event) {
+    //     console.log(event); 
+    //     // remove event from local database
+    //   })
+    //   .on('error', console.error);
+
+
+    //events using truffle
+    yield fork(handleEvents);
+    simpleStorageInstance.contract.Set(null, (_, evt) => {
+      eventChannel.put({
+        type: ADD_NEW_EVENT,
+        evt,
+      })
     });
 
-    const setEvent = simpleStorageInstance.Set();
-    setEvent.watch((function (error, result) {
-      if (error) {
-        console.log("Error");
-      }
-      else {
-        console.log('got event(set event):');
-        console.log(result);
-      }
-    }));
-
+    // events.watch(function (error, result) {
+    //   if (error) {
+    //     console.log("Error");
+    //   }
+    //   else {
+    //     console.log('got event(all events):');
+    //     console.log(result);
+    //     /*console.log(result.event + ": ");
+    //     for(key in result.args) {
+    //       if(result.event in displayFunctions && key in displayFunctions[result.event]) {
+    //         console.log("- " + key + ": " + displayFunctions[result.event][key].call(this, result.args[key]));
+    //       }
+    //       else {
+    //         console.log("- " + key + ": " + result.args[key]);
+    //       }
+    //     }*/
+    //   }
+    // });
 
     yield put(initDashboardSuccess(web3js, simpleStorage));
   }
   catch (err) {
+    console.log(err);
+
     yield put(initDashboardError(err.toString()));
   }
 }
+
+function* handleEvents() {
+  while (true) {
+    const event = yield take(simpleStorageInstance.contract.Set(null, (_, evt) => {
+      eventChannel.put({
+        type: ADD_NEW_EVENT,
+        evt,
+      })
+    }););
+    console.log(event);
+  }
+}
+
 
 /**
  * setStorageValue
@@ -130,9 +169,14 @@ function* setStorageValueAsync(action) {
     // promise will resolve only when transaction is mined
     const setValueResult = yield call(simpleStorageInstance.set, action.value, { from: accounts[0] });
     console.log('setValueResult:');
-    console.log(setValueResult);
+    //console.log(setValueResult);
 
-    yield put(setStorageValueSuccess());
+    if (setValueResult.receipt.logs.length > 0) { //receipt includes value from logs
+      yield put(setStorageValueSuccess());
+    } else {
+      yield put(setStorageValueError('contract not found on network'));
+    }
+
   }
   catch (err) {
     yield put(setStorageValueError(err.toString()));

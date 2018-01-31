@@ -17,6 +17,9 @@ import {
   GET_STORAGE_VALUE,
   GET_STORAGE_VALUE_SUCCESS,
   GET_STORAGE_VALUE_ERROR,
+
+  ADD_NEW_EVENT,
+
 } from './constants';
 
 const initialState = fromJS({
@@ -32,6 +35,8 @@ const initialState = fromJS({
   getStorageValueLoading: false,
   getStorageValueError: false,
 
+  events: [{a:'b'}],
+
 });
 
 function dashboardReducer(state = initialState, action) {
@@ -42,7 +47,7 @@ function dashboardReducer(state = initialState, action) {
     case INIT_DASHBOARD_SUCCESS:
       return state
         .set('web3', action.web3)
-        .set('simpleStorage', action.simpleStorage);            
+        .set('simpleStorage', action.simpleStorage);
     case INIT_DASHBOARD_ERROR:
       return state
         .set('web3', action.error);
@@ -76,6 +81,10 @@ function dashboardReducer(state = initialState, action) {
         .set('getStorageValue', null)
         .set('getStorageValueLoading', false)
         .set('getStorageValueError', action.error);
+
+    case ADD_NEW_EVENT:
+      return state;
+        //.set('events', state.get('events').push(action.event));
 
     default:
       return state;
